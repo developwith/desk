@@ -1,9 +1,8 @@
-require 'faraday'
-require 'faraday_middleware'
+require 'http_monkey'
 
 require 'desk_api/default'
-require 'desk_api/request/retry'
-require 'desk_api/response/raise_error'
+#require 'desk_api/request/retry'
+#require 'desk_api/response/raise_error'
 require 'desk_api/error/configuration_error'
 require 'desk_api/error/client_error'
 require 'desk_api/error/server_error'
@@ -35,20 +34,41 @@ module DeskApi::Configuration
     @endpoint ||= "https://#{@subdomain}.desk.com"
   end
 
-  def middleware
-    @middleware ||= Proc.new do |builder|
-      builder.request :json
-      builder.request :basic_auth, @username, @password if basic_auth.values.all?
-      builder.request :oauth, oauth if oauth.values.all?
-      builder.request :retry
+  def connection
+    return @middleware if @middleware
+    agent = HttpMonkey.build
+    agent.configure do
+      middlewares do
+        use HttpMonkey::M::DefaultHeaders, {"Content-Type" => "application/json"}
+        use HttpMonkey::M::RequestFilter do |env, request|
+          # HTTPI::Request, you can set proxy, timeouts, authentication etc.
+          #  req.proxy = "http://proxy.com"
+        end
 
-      builder.response :dates
-      builder.response :raise_error, DeskApi::Error::ClientError
-      builder.response :raise_error, DeskApi::Error::ServerError
-      builder.response :json, content_type: /application\/json/
-
-      builder.adapter Faraday.default_adapter
+        # Enable automatic follow redirect
+        use HttpMonkey::M::FollowRedirect, :max_tries => 3
+      end
     end
+    @middleware = agent
+
+
+
+    #@middleware ||= Proc.new do |builder|
+    #  builder.request :json
+    #  builder.request :basic_auth, @username, @password if basic_auth.values.all?
+    #  builder.request :oauth, oauth if oauth.values.all?
+    #  builder.request :retry
+    #  builder.response :dates
+    #  builder.response :raise_error, DeskApi::Error::ClientError
+    #  builder.response :raise_error, DeskApi::Error::ServerError
+    #  builder.response :json, content_type: /application\/json/
+    #  builder.adapter Faraday.default_adapter
+    #end
+  end
+
+  def setup_connection(connection, path)
+    # figure out oauth approach
+    connection.at(endpoint + path).with_header("Content-Type" => "application/json").basic_auth(@username, @password)
   end
 
   def configure

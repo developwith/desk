@@ -12,7 +12,7 @@ end
 
 require 'rspec'
 require 'vcr'
-require 'desk'
+require 'desk_api'
 
 begin
   require_relative '../config'
@@ -35,7 +35,7 @@ rescue LoadError
 end
 
 VCR.configure do |config|
-  config.hook_into :faraday
+  config.hook_into :webmock
   config.cassette_library_dir = 'spec/cassettes'
   config.configure_rspec_metadata!
   config.before_record { |i| i.request.headers.delete('Authorization') }

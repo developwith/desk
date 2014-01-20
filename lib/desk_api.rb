@@ -1,7 +1,6 @@
 require 'uri'
 require 'json'
 require 'forwardable'
-require 'addressable/uri'
 
 module DeskApi
   require 'desk_api/version'

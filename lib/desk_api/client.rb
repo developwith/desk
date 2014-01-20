@@ -41,14 +41,12 @@ private
   end
 
   def request(method, path, params = {})
-    connection.send(method, path, params)
-  rescue Faraday::Error::ClientError
-    raise DeskApi::Error::ClientError
+    conn = setup_connection(connection, path)
+    conn.send(method, params)
+  #rescue Faraday::Error::ClientError
+  #  raise DeskApi::Error::ClientError
   rescue JSON::ParserError
     raise DeskApi::Error::ParserError
   end
 
-  def connection
-    @connection ||= Faraday.new endpoint, connection_options, &middleware
-  end
 end

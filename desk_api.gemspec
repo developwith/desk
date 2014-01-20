@@ -20,12 +20,8 @@ Gem::Specification.new do |gem|
   gem.extra_rdoc_files  = ['README.md']
   gem.rdoc_options      = ['--line-numbers', '--inline--source', '--title', 'desk.rb']
 
-  gem.add_runtime_dependency('faraday')
-  gem.add_runtime_dependency('faraday_middleware')
-  gem.add_runtime_dependency('simple_oauth')
-  gem.add_runtime_dependency('addressable')
-  gem.add_runtime_dependency('hashie')
-
+  gem.add_runtime_dependency('http_monkey')
+  
   gem.add_development_dependency('rspec')
   gem.add_development_dependency('rake')
   gem.add_development_dependency('vcr')
